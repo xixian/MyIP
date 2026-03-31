@@ -1,34 +1,27 @@
-import { refererCheck } from '../common/referer-check.js';
-
-// 验证环境变量是否存在，以进行前端功能的开启和关闭
+// 移除防盗链 + 允许所有域名访问 + 关闭来源限制
 export default (req, res) => {
     // 限制请求方法
     if (req.method !== 'GET') {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    // 限制只能从指定域名访问
-    const referer = req.headers.referer;
-    if (!refererCheck(referer)) {
-        return res.status(403).json({ error: referer ? 'Access denied' : 'What are you doing?' });
-    }
-
-    const hostname = referer ? new URL(referer).hostname : '';
-    const allowedHostnames = ['ipcheck.ing', 'www.ipcheck.ing', 'localtest.ipcheck.ing'];
-    const originalSite = allowedHostnames.includes(hostname);
+    // 允许所有域名访问（解除官方防盗链）
+    const originalSite = false;
 
     const envConfigs = {
-        map: process.env.GOOGLE_MAP_API_KEY,
-        ipInfo: process.env.IPINFO_API_TOKEN,
-        ipChecking: process.env.IPCHECKING_API_KEY,
-        ip2location: process.env.IP2LOCATION_API_KEY,
+        map: false,
+        ipInfo: false,
+        ipChecking: false,
+        ip2location: false,
         originalSite,
-        cloudFlare: process.env.CLOUDFLARE_API,
-        ipapiis: process.env.IPAPIIS_API_KEY,
+        cloudFlare: false,
+        ipapiis: false,
     };
+    
     let result = {};
     for (const key in envConfigs) {
         result[key] = !!envConfigs[key];
     }
+    
     res.status(200).json(result);
 };
